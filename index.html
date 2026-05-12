@@ -49,11 +49,14 @@ video#camera { width: 100%; height: 100%; object-fit: contain; transform: scaleX
 .rec-timer { position: absolute; top: 14px; right: 16px; z-index: 11; font-family: 'Space Mono', monospace; font-size: 13px; color: var(--red); display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(8px); }
 .rec-timer.show { display: flex; }
 .rec-timer .blink { width: 8px; height: 8px; background: var(--red); border-radius: 50%; animation: pulse-dot 1s ease infinite; }
-.done-screen { align-items: center; justify-content: center; gap: 18px; padding: 36px; text-align: center; }
-.done-screen .check-circle { width: 78px; height: 78px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; }
-.done-screen .check-circle svg { width: 38px; height: 38px; color: var(--accent); }
-.done-screen h2 { font-family: 'Space Mono', monospace; font-size: 20px; }
-.done-screen p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+.done-screen { align-items: center; justify-content: flex-start; gap: 14px; padding: 24px 20px 20px; text-align: center; overflow-y: auto; }
+.done-screen .head-row { display: flex; align-items: center; gap: 12px; }
+.done-screen .check-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.done-screen .check-circle svg { width: 24px; height: 24px; color: var(--accent); }
+.done-screen h2 { font-family: 'Space Mono', monospace; font-size: 18px; }
+.done-screen p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.preview-wrap { width: 100%; max-width: 360px; aspect-ratio: 9/16; background: #000; border-radius: 14px; overflow: hidden; position: relative; }
+.preview-wrap video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 .stats-grid { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
 .stat-card { flex: 1; background: var(--surface); border-radius: 12px; padding: 14px; text-align: center; }
 .stat-card .num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); }
@@ -103,9 +106,11 @@ Open Camera
 </div>
 </div>
 <div class="screen done-screen" id="screenDone">
+<div class="head-row">
 <div class="check-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
 <h2>Recording Complete</h2>
-<p>Your clean video (no overlay) is ready to save.</p>
+</div>
+<div class="preview-wrap"><video id="previewVideo" controls playsinline></video></div>
 <div class="stats-grid">
 <div class="stat-card"><div class="num" id="statRead">0</div><div class="label">Words read</div></div>
 <div class="stat-card"><div class="num warn" id="statSkipped">0</div><div class="label">Skipped</div></div>
@@ -125,7 +130,8 @@ const screenInput=$('screenInput'),screenCamera=$('screenCamera'),screenDone=$('
       btnReset=$('btnReset'),btnSlower=$('btnSlower'),btnFaster=$('btnFaster'),
       speedSlider=$('speedSlider'),speedValInput=$('speedValInput'),speedBadge=$('speedBadge'),
       recTimer=$('recTimer'),timerText=$('timerText'),btnSave=$('btnSave'),btnRetry=$('btnRetry'),
-      toast=$('toast'),statRead=$('statRead'),statSkipped=$('statSkipped'),statAccuracy=$('statAccuracy');
+      toast=$('toast'),statRead=$('statRead'),statSkipped=$('statSkipped'),statAccuracy=$('statAccuracy'),
+      previewVideo=$('previewVideo');
 
 let words=[],spokenFlags=[],lastSpokenIndex=-1;
 let wpm=140;
@@ -241,35 +247,26 @@ function processSpokenWord(sw){
   }
 }
 
-let lastTranscripts={};
+let resultsProcessed={};
 function startRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){showToast('Speech recognition not supported in this browser');return}
-  lastTranscripts={};
+  resultsProcessed={};
   recognition=new SR();
   recognition.continuous=true;
   recognition.interimResults=true;
   recognition.lang='en-US';
   recognition.onresult=(e)=>{
     for(let i=e.resultIndex;i<e.results.length;i++){
-      const transcript=e.results[i][0].transcript.toLowerCase();
-      const prev=lastTranscripts[i]||'';
-      let diff=transcript.startsWith(prev)?transcript.substring(prev.length):transcript;
-      if(!diff||!diff.trim()){lastTranscripts[i]=transcript;continue}
-      const parts=diff.trim().split(/\s+/).filter(w=>w);
-      const isFinal=e.results[i].isFinal;
-      const endsWithSpace=/\s$/.test(diff);
-      const useParts=(isFinal||endsWithSpace)?parts:parts.slice(0,-1);
-      for(const sw of useParts) processSpokenWord(sw);
-      if(isFinal||endsWithSpace){
-        lastTranscripts[i]=transcript;
-      } else if(parts.length>0){
-        const lastWord=parts[parts.length-1];
-        const idx=transcript.lastIndexOf(lastWord);
-        lastTranscripts[i]=idx>=0?transcript.substring(0,idx):transcript;
-      } else {
-        lastTranscripts[i]=transcript;
-      }
+      const result=e.results[i];
+      const transcript=result[0].transcript.toLowerCase().trim();
+      if(!transcript) continue;
+      const parts=transcript.split(/\s+/).filter(w=>w);
+      const isFinal=result.isFinal;
+      const processed=resultsProcessed[i]||0;
+      const commitTo=isFinal?parts.length:Math.max(0,parts.length-1);
+      for(let k=processed;k<commitTo;k++) processSpokenWord(parts[k]);
+      resultsProcessed[i]=commitTo;
     }
   };
   recognition.onerror=(e)=>{if(e.error!=='no-speech'&&e.error!=='aborted')console.warn('Recognition error:',e.error)};
@@ -298,7 +295,7 @@ function startRecording(){
   mediaRecorder.ondataavailable=(e)=>{if(e.data.size>0)chunks.push(e.data)};
   mediaRecorder.onstop=()=>{
     videoBlob=new Blob(chunks,{type:mediaRecorder.mimeType||'video/mp4'});
-    const reached=Math.min(words.length,Math.ceil(autoIndex));
+    const reached=lastSpokenIndex+1;
     let spokenCount=0;
     for(let i=0;i<reached;i++) if(spokenFlags[i]) spokenCount++;
     const skipped=reached-spokenCount;
@@ -306,6 +303,10 @@ function startRecording(){
     statRead.textContent=spokenCount;
     statSkipped.textContent=skipped;
     statAccuracy.textContent=accuracy+'%';
+    if(previewVideo){
+      if(previewVideo.src) URL.revokeObjectURL(previewVideo.src);
+      previewVideo.src=URL.createObjectURL(videoBlob);
+    }
     showScreen(screenDone);
   };
   mediaRecorder.start();
@@ -381,6 +382,7 @@ btnSave.addEventListener('click',async()=>{
 btnRetry.addEventListener('click',async()=>{
   spokenFlags=new Array(words.length).fill(false);
   lastSpokenIndex=-1;autoIndex=0;scrolling=false;videoBlob=null;
+  if(previewVideo&&previewVideo.src){URL.revokeObjectURL(previewVideo.src);previewVideo.removeAttribute('src');previewVideo.load();}
   const ok=await openCamera();
   if(ok){showScreen(screenCamera);requestAnimationFrame(()=>{measureReadingLine();startLoop()})}
 });
