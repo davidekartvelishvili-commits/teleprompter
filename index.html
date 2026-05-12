@@ -17,6 +17,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .input-screen h1 .dot { width: 10px; height: 10px; background: var(--red); border-radius: 50%; animation: pulse-dot 1.5s ease infinite; }
 @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
 .input-screen p.subtitle { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.speed-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border-radius: 12px; padding: 12px 16px; }
+.speed-row label { font-size: 13px; color: var(--text-dim); }
+.speed-row .val { font-family: 'Space Mono', monospace; font-size: 14px; color: var(--accent); min-width: 60px; text-align: right; }
+.speed-row input[type=range] { flex: 1; accent-color: var(--accent); }
 textarea { flex: 1; background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; resize: none; outline: none; transition: border-color 0.3s; }
 textarea:focus { border-color: rgba(0,230,118,0.3); }
 textarea::placeholder { color: var(--text-dim); }
@@ -25,29 +29,37 @@ textarea::placeholder { color: var(--text-dim); }
 .btn-start svg { width: 22px; height: 22px; }
 .camera-screen { position: relative; background: #000; }
 video#camera { width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); background: #000; }
-.prompter-overlay { position: absolute; top: 0; left: 0; right: 0; padding: 50px 20px 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.6) 60%, transparent 100%); pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 160px; }
-.prompter-words { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; line-height: 1.5; text-align: center; letter-spacing: 0.5px; text-shadow: 0 2px 12px rgba(0,0,0,0.8); max-width: 95%; }
-.prompter-words .word { display: inline-block; margin: 0 5px; transition: color 0.2s, text-shadow 0.2s; color: #fff; }
-.prompter-words .word.spoken { color: var(--accent); text-shadow: 0 0 20px var(--accent-dim); }
-.prompter-words .word.current { color: #fff; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--accent); }
-.progress-bar { width: 120px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; margin-top: 8px; }
-.progress-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
-.camera-controls { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 24px 36px; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); display: flex; align-items: center; justify-content: center; gap: 32px; z-index: 10; }
-.btn-icon { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.12); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); transition: background 0.2s; }
-.btn-icon:active { background: rgba(255,255,255,0.25); }
-.btn-icon svg { width: 22px; height: 22px; }
-.btn-record { width: 68px; height: 68px; border-radius: 50%; background: transparent; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; position: relative; }
+.prompter-overlay { position: absolute; top: 0; left: 0; right: 0; height: 42%; background: linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.7) 60%, transparent 100%); z-index: 10; overflow: hidden; pointer-events: none; }
+.prompter-window { position: absolute; top: 40px; left: 0; right: 0; bottom: 8px; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%); }
+.prompter-scroll { position: absolute; top: 0; left: 0; right: 0; padding: 0 22px; font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 700; line-height: 1.7; text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.9); will-change: transform; }
+.prompter-scroll .word { display: inline-block; margin: 0 5px; color: rgba(255,255,255,0.85); transition: color 0.25s, text-shadow 0.25s; }
+.prompter-scroll .word.spoken { color: var(--accent); text-shadow: 0 0 16px var(--accent-dim); }
+.prompter-scroll .word.current { color: #fff; border-bottom: 3px solid var(--accent); padding-bottom: 1px; box-shadow: 0 6px 18px var(--accent-dim); }
+.reading-line { position: absolute; top: 50%; left: 6%; right: 6%; height: 0; border-top: 1px dashed rgba(255,255,255,0.15); z-index: 5; pointer-events: none; }
+.camera-controls { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 18px 30px; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); display: flex; align-items: center; justify-content: center; gap: 18px; z-index: 10; }
+.btn-icon { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.12); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); transition: background 0.2s; flex-shrink: 0; }
+.btn-icon.small { width: 40px; height: 40px; }
+.btn-icon:active { background: rgba(255,255,255,0.28); }
+.btn-icon svg { width: 20px; height: 20px; }
+.btn-icon .num { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; }
+.speed-badge { font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.45); border-radius: 12px; padding: 4px 10px; backdrop-filter: blur(8px); min-width: 64px; text-align: center; }
+.btn-record { width: 68px; height: 68px; border-radius: 50%; background: transparent; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; position: relative; flex-shrink: 0; }
 .btn-record .inner { width: 52px; height: 52px; border-radius: 50%; background: var(--red); transition: all 0.3s; }
 .btn-record.recording .inner { width: 24px; height: 24px; border-radius: 6px; }
-.rec-timer { position: absolute; top: 50px; right: 20px; z-index: 11; font-family: 'Space Mono', monospace; font-size: 14px; color: var(--red); display: none; align-items: center; gap: 6px; }
+.rec-timer { position: absolute; top: 14px; right: 16px; z-index: 11; font-family: 'Space Mono', monospace; font-size: 13px; color: var(--red); display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(8px); }
 .rec-timer.show { display: flex; }
 .rec-timer .blink { width: 8px; height: 8px; background: var(--red); border-radius: 50%; animation: pulse-dot 1s ease infinite; }
-.done-screen { align-items: center; justify-content: center; gap: 20px; padding: 40px; text-align: center; }
-.done-screen .check-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; }
-.done-screen .check-circle svg { width: 40px; height: 40px; color: var(--accent); }
+.done-screen { align-items: center; justify-content: center; gap: 18px; padding: 36px; text-align: center; }
+.done-screen .check-circle { width: 78px; height: 78px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; }
+.done-screen .check-circle svg { width: 38px; height: 38px; color: var(--accent); }
 .done-screen h2 { font-family: 'Space Mono', monospace; font-size: 20px; }
 .done-screen p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
-.done-actions { display: flex; gap: 12px; margin-top: 10px; width: 100%; }
+.stats-grid { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
+.stat-card { flex: 1; background: var(--surface); border-radius: 12px; padding: 14px; text-align: center; }
+.stat-card .num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-card .num.warn { color: var(--red); }
+.stat-card .label { font-size: 11px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.done-actions { display: flex; gap: 12px; margin-top: 6px; width: 100%; }
 .done-actions button { flex: 1; padding: 14px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: transform 0.15s; }
 .done-actions button:active { transform: scale(0.97); }
 .btn-save { background: var(--accent); color: #0a0a0f; }
@@ -60,8 +72,13 @@ video#camera { width: 100%; height: 100%; object-fit: contain; transform: scaleX
 <div class="error-toast" id="toast"></div>
 <div class="screen input-screen active" id="screenInput">
 <h1><span class="dot"></span> TelePrompt</h1>
-<p class="subtitle">Paste your script below, then tap the camera to start recording with a live teleprompter overlay.</p>
+<p class="subtitle">Paste your script, set your reading speed, then record. Text scrolls smoothly while a green underline marks where you actually are.</p>
 <textarea id="scriptInput" placeholder="Paste your script here..."></textarea>
+<div class="speed-row">
+<label>Speed</label>
+<input type="range" id="speedSlider" min="60" max="320" step="10" value="140">
+<span class="val" id="speedValInput">140 WPM</span>
+</div>
 <button class="btn-start" id="btnOpenCamera">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
 Open Camera
@@ -70,27 +87,263 @@ Open Camera
 <div class="screen camera-screen" id="screenCamera">
 <video id="camera" autoplay playsinline muted></video>
 <div class="prompter-overlay">
-<div class="prompter-words" id="prompterWords"></div>
-<div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+<div class="prompter-window">
+<div class="prompter-scroll" id="prompterScroll"></div>
+</div>
+<div class="reading-line"></div>
 </div>
 <div class="rec-timer" id="recTimer"><span class="blink"></span><span id="timerText">00:00</span></div>
 <div class="camera-controls">
 <button class="btn-icon" id="btnBack" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button class="btn-icon small" id="btnSlower" title="Slower"><span class="num">−</span></button>
+<div class="speed-badge" id="speedBadge">140 WPM</div>
+<button class="btn-icon small" id="btnFaster" title="Faster"><span class="num">+</span></button>
 <button class="btn-record" id="btnRecord"><div class="inner"></div></button>
-<button class="btn-icon" id="btnResetWords" title="Reset words"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+<button class="btn-icon" id="btnReset" title="Restart text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
 </div>
 </div>
 <div class="screen done-screen" id="screenDone">
 <div class="check-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
 <h2>Recording Complete</h2>
 <p>Your clean video (no overlay) is ready to save.</p>
+<div class="stats-grid">
+<div class="stat-card"><div class="num" id="statRead">0</div><div class="label">Words read</div></div>
+<div class="stat-card"><div class="num warn" id="statSkipped">0</div><div class="label">Skipped</div></div>
+<div class="stat-card"><div class="num" id="statAccuracy">0%</div><div class="label">Accuracy</div></div>
+</div>
 <div class="done-actions">
 <button class="btn-retry" id="btnRetry">New Take</button>
 <button class="btn-save" id="btnSave">Save Video</button>
 </div>
 </div>
 <script>
-(function(){const $=id=>document.getElementById(id);const screenInput=$('screenInput'),screenCamera=$('screenCamera'),screenDone=$('screenDone'),scriptInput=$('scriptInput'),btnOpenCamera=$('btnOpenCamera'),videoEl=$('camera'),prompterWords=$('prompterWords'),progressFill=$('progressFill'),btnRecord=$('btnRecord'),btnBack=$('btnBack'),btnResetWords=$('btnResetWords'),recTimer=$('recTimer'),timerText=$('timerText'),btnSave=$('btnSave'),btnRetry=$('btnRetry'),toast=$('toast');let words=[],currentWordIndex=0;const VISIBLE_WORDS=5;let stream=null,mediaRecorder=null,chunks=[],recording=false,recognition=null,timerInterval=null,seconds=0,videoBlob=null;function showScreen(s){[screenInput,screenCamera,screenDone].forEach(x=>x.classList.remove('active'));s.classList.add('active')}function showToast(m){toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3000)}function formatTime(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}function renderWords(){const start=Math.max(0,currentWordIndex-1),end=Math.min(words.length,start+VISIBLE_WORDS);let html='';for(let i=start;i<end;i++){let cls='';if(i<currentWordIndex)cls='spoken';else if(i===currentWordIndex)cls='current';html+=`<span class="word ${cls}">${words[i]}</span> `}prompterWords.innerHTML=html;progressFill.style.width=words.length>0?(currentWordIndex/words.length)*100+'%':'0%'}function startRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast('Speech recognition not supported');return}recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-US';recognition.onresult=(e)=>{for(let i=e.resultIndex;i<e.results.length;i++){const transcript=e.results[i][0].transcript.toLowerCase().trim();const spokenWords=transcript.split(/\s+/);for(const sw of spokenWords){if(currentWordIndex<words.length){const target=words[currentWordIndex].toLowerCase().replace(/[^a-z0-9]/gi,'');const spoken=sw.replace(/[^a-z0-9]/gi,'');if(spoken&&target&&(target.includes(spoken)||spoken.includes(target)||levenshtein(spoken,target)<=2)){currentWordIndex++;renderWords()}}}}};recognition.onerror=(e)=>{if(e.error!=='no-speech'&&e.error!=='aborted')console.warn('Recognition error:',e.error)};recognition.onend=()=>{if(recording&&recognition){try{recognition.start()}catch(e){}}};try{recognition.start()}catch(e){}}function stopRecognition(){if(recognition){try{recognition.abort()}catch(e){}recognition=null}}function levenshtein(a,b){const m=a.length,n=b.length;if(m===0)return n;if(n===0)return m;const d=[];for(let i=0;i<=m;i++)d[i]=[i];for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+cost)}return d[m][n]}async function openCamera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});videoEl.srcObject=stream}catch(e){showToast('Camera access denied');return false}return true}function closeCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}videoEl.srcObject=null}function startRecording(){chunks=[];let options={mimeType:'video/webm;codecs=vp8,opus'};if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='video/webm';if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='video/mp4';if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='';mediaRecorder=new MediaRecorder(stream,options);mediaRecorder.ondataavailable=(e)=>{if(e.data.size>0)chunks.push(e.data)};mediaRecorder.onstop=()=>{videoBlob=new Blob(chunks,{type:mediaRecorder.mimeType||'video/mp4'});showScreen(screenDone)};mediaRecorder.start(100);recording=true;btnRecord.classList.add('recording');recTimer.classList.add('show');seconds=0;timerText.textContent='00:00';timerInterval=setInterval(()=>{seconds++;timerText.textContent=formatTime(seconds)},1000);startRecognition()}function stopRecording(){recording=false;btnRecord.classList.remove('recording');recTimer.classList.remove('show');clearInterval(timerInterval);stopRecognition();if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();closeCamera()}btnOpenCamera.addEventListener('click',async()=>{const text=scriptInput.value.trim();if(!text){showToast('Please paste your script first');return}words=text.split(/\s+/).filter(w=>w.length>0);currentWordIndex=0;renderWords();const ok=await openCamera();if(ok)showScreen(screenCamera)});btnRecord.addEventListener('click',()=>{if(!recording)startRecording();else stopRecording()});btnBack.addEventListener('click',()=>{if(recording)stopRecording();else closeCamera();showScreen(screenInput)});btnResetWords.addEventListener('click',()=>{currentWordIndex=0;renderWords()});btnSave.addEventListener('click',()=>{if(!videoBlob)return;const url=URL.createObjectURL(videoBlob);const a=document.createElement('a');a.href=url;const ext=videoBlob.type.includes('mp4')?'.mp4':'.webm';a.download='teleprompt_'+Date.now()+ext;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('Video saved!')});btnRetry.addEventListener('click',async()=>{currentWordIndex=0;renderWords();videoBlob=null;const ok=await openCamera();if(ok)showScreen(screenCamera)})})();
+(function(){
+const $=id=>document.getElementById(id);
+const screenInput=$('screenInput'),screenCamera=$('screenCamera'),screenDone=$('screenDone'),
+      scriptInput=$('scriptInput'),btnOpenCamera=$('btnOpenCamera'),videoEl=$('camera'),
+      prompterScroll=$('prompterScroll'),btnRecord=$('btnRecord'),btnBack=$('btnBack'),
+      btnReset=$('btnReset'),btnSlower=$('btnSlower'),btnFaster=$('btnFaster'),
+      speedSlider=$('speedSlider'),speedValInput=$('speedValInput'),speedBadge=$('speedBadge'),
+      recTimer=$('recTimer'),timerText=$('timerText'),btnSave=$('btnSave'),btnRetry=$('btnRetry'),
+      toast=$('toast'),statRead=$('statRead'),statSkipped=$('statSkipped'),statAccuracy=$('statAccuracy');
+
+let words=[],spokenFlags=[],lastSpokenIndex=-1;
+let wpm=140;
+let autoIndex=0;
+let scrolling=false;
+let stream=null,mediaRecorder=null,chunks=[],recording=false,recognition=null;
+let timerInterval=null,seconds=0,videoBlob=null;
+let rafId=null,lastTime=0;
+let wordEls=[];
+let readingY=0;
+
+function showScreen(s){[screenInput,screenCamera,screenDone].forEach(x=>x.classList.remove('active'));s.classList.add('active')}
+function showToast(m){toast.textContent=m;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3000)}
+function formatTime(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
+function setSpeed(v){wpm=Math.max(60,Math.min(320,v));speedSlider.value=wpm;speedValInput.textContent=wpm+' WPM';speedBadge.textContent=wpm+' WPM'}
+
+function buildPrompter(){
+  prompterScroll.innerHTML='';
+  wordEls=[];
+  for(let i=0;i<words.length;i++){
+    const span=document.createElement('span');
+    span.className='word';
+    span.textContent=words[i];
+    prompterScroll.appendChild(span);
+    prompterScroll.appendChild(document.createTextNode(' '));
+    wordEls.push(span);
+  }
+}
+
+function updatePrompter(){
+  if(!wordEls.length) return;
+  for(let i=0;i<wordEls.length;i++){
+    const el=wordEls[i];
+    const wantSpoken=spokenFlags[i];
+    const wantCurrent=(i===lastSpokenIndex);
+    if(wantSpoken!==el.classList.contains('spoken')) el.classList.toggle('spoken',wantSpoken);
+    if(wantCurrent!==el.classList.contains('current')) el.classList.toggle('current',wantCurrent);
+  }
+  const idx=Math.min(words.length-1,Math.floor(autoIndex));
+  const target=wordEls[idx];
+  if(target){
+    const wordCenter=target.offsetTop+target.offsetHeight/2;
+    const frac=autoIndex-Math.floor(autoIndex);
+    const next=wordEls[Math.min(words.length-1,idx+1)];
+    const nextCenter=next?next.offsetTop+next.offsetHeight/2:wordCenter;
+    const center=wordCenter+(nextCenter-wordCenter)*frac;
+    prompterScroll.style.transform='translateY('+(readingY-center)+'px)';
+  }
+}
+
+function tick(now){
+  if(!lastTime) lastTime=now;
+  const dt=Math.min(0.1,(now-lastTime)/1000);
+  lastTime=now;
+  if(scrolling && autoIndex<words.length){
+    autoIndex+=(wpm/60)*dt;
+    if(autoIndex>words.length) autoIndex=words.length;
+  }
+  updatePrompter();
+  rafId=requestAnimationFrame(tick);
+}
+
+function startLoop(){
+  cancelAnimationFrame(rafId);
+  lastTime=0;
+  rafId=requestAnimationFrame(tick);
+}
+
+function measureReadingLine(){
+  const win=document.querySelector('.prompter-window');
+  if(win) readingY=win.offsetHeight/2;
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  if(m===0)return n;if(n===0)return m;
+  const d=[];for(let i=0;i<=m;i++)d[i]=[i];
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const cost=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+cost);
+  }
+  return d[m][n];
+}
+
+function startRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('Speech recognition not supported in this browser');return}
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
+  recognition.onresult=(e)=>{
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const transcript=e.results[i][0].transcript.toLowerCase().trim();
+      const spokenWords=transcript.split(/\s+/);
+      for(const sw of spokenWords){
+        const spoken=sw.replace(/[^a-z0-9]/gi,'');
+        if(!spoken) continue;
+        const start=lastSpokenIndex+1;
+        const end=Math.min(words.length,start+10);
+        for(let j=start;j<end;j++){
+          const target=words[j].toLowerCase().replace(/[^a-z0-9]/gi,'');
+          if(target && (target===spoken||target.startsWith(spoken)||spoken.startsWith(target)||(spoken.length>=3&&target.length>=3&&levenshtein(spoken,target)<=2))){
+            spokenFlags[j]=true;
+            lastSpokenIndex=j;
+            break;
+          }
+        }
+      }
+    }
+  };
+  recognition.onerror=(e)=>{if(e.error!=='no-speech'&&e.error!=='aborted')console.warn('Recognition error:',e.error)};
+  recognition.onend=()=>{if(recording&&recognition){try{recognition.start()}catch(e){}}};
+  try{recognition.start()}catch(e){}
+}
+
+function stopRecognition(){if(recognition){try{recognition.abort()}catch(e){}recognition=null}}
+
+async function openCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    videoEl.srcObject=stream;
+  }catch(e){showToast('Camera access denied');return false}
+  return true;
+}
+function closeCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}videoEl.srcObject=null}
+
+function startRecording(){
+  chunks=[];
+  let options={mimeType:'video/webm;codecs=vp8,opus'};
+  if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='video/webm';
+  if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='video/mp4';
+  if(!MediaRecorder.isTypeSupported(options.mimeType))options.mimeType='';
+  mediaRecorder=new MediaRecorder(stream,options);
+  mediaRecorder.ondataavailable=(e)=>{if(e.data.size>0)chunks.push(e.data)};
+  mediaRecorder.onstop=()=>{
+    videoBlob=new Blob(chunks,{type:mediaRecorder.mimeType||'video/mp4'});
+    const reached=Math.min(words.length,Math.ceil(autoIndex));
+    let spokenCount=0;
+    for(let i=0;i<reached;i++) if(spokenFlags[i]) spokenCount++;
+    const skipped=reached-spokenCount;
+    const accuracy=reached>0?Math.round((spokenCount/reached)*100):0;
+    statRead.textContent=spokenCount;
+    statSkipped.textContent=skipped;
+    statAccuracy.textContent=accuracy+'%';
+    showScreen(screenDone);
+  };
+  mediaRecorder.start(100);
+  recording=true;scrolling=true;
+  btnRecord.classList.add('recording');
+  recTimer.classList.add('show');
+  seconds=0;timerText.textContent='00:00';
+  timerInterval=setInterval(()=>{seconds++;timerText.textContent=formatTime(seconds)},1000);
+  startRecognition();
+}
+
+function stopRecording(){
+  recording=false;scrolling=false;
+  btnRecord.classList.remove('recording');
+  recTimer.classList.remove('show');
+  clearInterval(timerInterval);
+  stopRecognition();
+  if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
+  closeCamera();
+}
+
+speedSlider.addEventListener('input',()=>setSpeed(parseInt(speedSlider.value,10)));
+btnSlower.addEventListener('click',()=>setSpeed(wpm-10));
+btnFaster.addEventListener('click',()=>setSpeed(wpm+10));
+
+btnOpenCamera.addEventListener('click',async()=>{
+  const text=scriptInput.value.trim();
+  if(!text){showToast('Please paste your script first');return}
+  words=text.split(/\s+/).filter(w=>w.length>0);
+  spokenFlags=new Array(words.length).fill(false);
+  lastSpokenIndex=-1;autoIndex=0;scrolling=false;
+  buildPrompter();
+  const ok=await openCamera();
+  if(ok){
+    showScreen(screenCamera);
+    requestAnimationFrame(()=>{measureReadingLine();startLoop()});
+  }
+});
+
+btnRecord.addEventListener('click',()=>{if(!recording)startRecording();else stopRecording()});
+
+btnBack.addEventListener('click',()=>{
+  if(recording)stopRecording();else closeCamera();
+  cancelAnimationFrame(rafId);scrolling=false;
+  showScreen(screenInput);
+});
+
+btnReset.addEventListener('click',()=>{
+  autoIndex=0;lastSpokenIndex=-1;
+  for(let i=0;i<spokenFlags.length;i++) spokenFlags[i]=false;
+});
+
+btnSave.addEventListener('click',()=>{
+  if(!videoBlob)return;
+  const url=URL.createObjectURL(videoBlob);
+  const a=document.createElement('a');a.href=url;
+  const ext=videoBlob.type.includes('mp4')?'.mp4':'.webm';
+  a.download='teleprompt_'+Date.now()+ext;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);showToast('Video saved!');
+});
+
+btnRetry.addEventListener('click',async()=>{
+  spokenFlags=new Array(words.length).fill(false);
+  lastSpokenIndex=-1;autoIndex=0;scrolling=false;videoBlob=null;
+  const ok=await openCamera();
+  if(ok){showScreen(screenCamera);requestAnimationFrame(()=>{measureReadingLine();startLoop()})}
+});
+
+window.addEventListener('resize',measureReadingLine);
+setSpeed(140);
+})();
 </script>
 </body>
 </html>
