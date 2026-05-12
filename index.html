@@ -211,30 +211,64 @@ function levenshtein(a,b){
   return d[m][n];
 }
 
+function isWordMatch(spoken,target){
+  if(!spoken||!target) return false;
+  if(spoken===target) return true;
+  const sl=spoken.length,tl=target.length;
+  if(sl<=1||tl<=1) return false;
+  if(sl<=3||tl<=3){
+    if(target.startsWith(spoken)||spoken.startsWith(target)) return true;
+    return false;
+  }
+  if(target.startsWith(spoken)||spoken.startsWith(target)) return true;
+  if(target.includes(spoken)||spoken.includes(target)) return true;
+  const maxL=Math.max(sl,tl);
+  return levenshtein(spoken,target)<=(maxL>=7?2:1);
+}
+
+function processSpokenWord(sw){
+  const spoken=sw.replace(/[^a-z0-9]/gi,'');
+  if(!spoken) return;
+  const start=lastSpokenIndex+1;
+  const end=Math.min(words.length,start+5);
+  for(let j=start;j<end;j++){
+    const target=words[j].toLowerCase().replace(/[^a-z0-9]/gi,'');
+    if(isWordMatch(spoken,target)){
+      spokenFlags[j]=true;
+      lastSpokenIndex=j;
+      return;
+    }
+  }
+}
+
+let lastTranscripts={};
 function startRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){showToast('Speech recognition not supported in this browser');return}
+  lastTranscripts={};
   recognition=new SR();
   recognition.continuous=true;
   recognition.interimResults=true;
   recognition.lang='en-US';
   recognition.onresult=(e)=>{
     for(let i=e.resultIndex;i<e.results.length;i++){
-      const transcript=e.results[i][0].transcript.toLowerCase().trim();
-      const spokenWords=transcript.split(/\s+/);
-      for(const sw of spokenWords){
-        const spoken=sw.replace(/[^a-z0-9]/gi,'');
-        if(!spoken) continue;
-        const start=lastSpokenIndex+1;
-        const end=Math.min(words.length,start+10);
-        for(let j=start;j<end;j++){
-          const target=words[j].toLowerCase().replace(/[^a-z0-9]/gi,'');
-          if(target && (target===spoken||target.startsWith(spoken)||spoken.startsWith(target)||(spoken.length>=3&&target.length>=3&&levenshtein(spoken,target)<=2))){
-            spokenFlags[j]=true;
-            lastSpokenIndex=j;
-            break;
-          }
-        }
+      const transcript=e.results[i][0].transcript.toLowerCase();
+      const prev=lastTranscripts[i]||'';
+      let diff=transcript.startsWith(prev)?transcript.substring(prev.length):transcript;
+      if(!diff||!diff.trim()){lastTranscripts[i]=transcript;continue}
+      const parts=diff.trim().split(/\s+/).filter(w=>w);
+      const isFinal=e.results[i].isFinal;
+      const endsWithSpace=/\s$/.test(diff);
+      const useParts=(isFinal||endsWithSpace)?parts:parts.slice(0,-1);
+      for(const sw of useParts) processSpokenWord(sw);
+      if(isFinal||endsWithSpace){
+        lastTranscripts[i]=transcript;
+      } else if(parts.length>0){
+        const lastWord=parts[parts.length-1];
+        const idx=transcript.lastIndexOf(lastWord);
+        lastTranscripts[i]=idx>=0?transcript.substring(0,idx):transcript;
+      } else {
+        lastTranscripts[i]=transcript;
       }
     }
   };
@@ -274,7 +308,7 @@ function startRecording(){
     statAccuracy.textContent=accuracy+'%';
     showScreen(screenDone);
   };
-  mediaRecorder.start(100);
+  mediaRecorder.start();
   recording=true;scrolling=true;
   btnRecord.classList.add('recording');
   recTimer.classList.add('show');
@@ -324,14 +358,24 @@ btnReset.addEventListener('click',()=>{
   for(let i=0;i<spokenFlags.length;i++) spokenFlags[i]=false;
 });
 
-btnSave.addEventListener('click',()=>{
+btnSave.addEventListener('click',async()=>{
   if(!videoBlob)return;
-  const url=URL.createObjectURL(videoBlob);
-  const a=document.createElement('a');a.href=url;
   const ext=videoBlob.type.includes('mp4')?'.mp4':'.webm';
-  a.download='teleprompt_'+Date.now()+ext;
+  const filename='teleprompt_'+Date.now()+ext;
+  try{
+    const file=new File([videoBlob],filename,{type:videoBlob.type});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'My recording'});
+      showToast('Shared!');
+      return;
+    }
+  }catch(err){
+    if(err&&err.name==='AbortError') return;
+  }
+  const url=URL.createObjectURL(videoBlob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(url);showToast('Video saved!');
+  URL.revokeObjectURL(url);showToast('Video downloaded!');
 });
 
 btnRetry.addEventListener('click',async()=>{
